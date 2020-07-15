@@ -31,7 +31,10 @@ void setup_wifi() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
+    digitalWrite(ledPin, LOW);
   }
+
+  digitalWrite(ledPin, HIGH);
 
   randomSeed(micros());
 
@@ -42,14 +45,19 @@ void setup_wifi() {
 }
 
 void reconnect() {
+   
   // Loop until we're reconnected
   while (!client.connected()) {
+    digitalWrite(ledPin, HIGH);
+    delay(100);
+    digitalWrite(ledPin, LOW);
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
     String clientId = "MotionDetector-" + String(random(0xffff), HEX);
     if (client.connect(clientId.c_str(), mqtt_user, mqtt_password)) {
       Serial.println("connected");
-      client.publish(topic, "test", true);  
+      getAndSendMotionStatus();
+      digitalWrite(ledPin, HIGH);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -62,6 +70,7 @@ void reconnect() {
 
 void setup() {
   Serial.begin(115200);
+  pinMode(ledPin, OUTPUT);
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   while (!client.connected()) {
@@ -69,13 +78,8 @@ void setup() {
   }
 }
 
-void loop() {
-  if (!client.connected()) {
-    reconnect();
-  }
-  client.loop();
-
-  int motionState = digitalRead(inputPin);
+void getAndSendMotionStatus(){
+   int motionState = digitalRead(inputPin);
 
   while(motionState == HIGH){
     //wait
@@ -95,4 +99,13 @@ void loop() {
     Serial.println("No Motion");
     i++;
   }
+}
+
+void loop() {
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
+  getAndSendMotionStatus();
 }

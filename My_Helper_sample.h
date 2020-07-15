@@ -10,5 +10,6 @@ const char* mqtt_server = "YOUR_MQTT_SERVER_ADDRESS";
 const char* topic = "sonoff/pir";
 
 const int inputPin = D1;//input pin is D3 in here but labelled D1 on the D1 mini
+const int ledPin = D4;
 
 #endif
